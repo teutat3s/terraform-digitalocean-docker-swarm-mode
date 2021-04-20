@@ -20,12 +20,12 @@ output "worker_ips_private" {
 
 output "droplet_ids" {
   value       = concat(module.managers.droplet_ids, module.workers.droplet_ids)
-  description = "The ids of all droplets"
+  description = "List containing the ids of all droplets"
 }
 
 output "droplet_urns" {
   value       = concat(module.managers.droplet_urns, module.workers.droplet_urns)
-  description = "The uniform resource name (URN) of all droplets"
+  description = "List containing the uniform resource name (URN) of all droplets"
 }
 
 output "manager_token" {
