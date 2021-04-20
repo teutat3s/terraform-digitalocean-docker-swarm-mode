@@ -11,7 +11,7 @@ Terraform module to provision a Docker Swarm mode cluster in a single availabili
 
 ## Requirements
 
-- Terraform >= 0.11.7
+- Terraform >= 0.13
 - Digitalocean account / API token with write access
 - SSH Keys added to your DigitalOcean account
 - [jq](https://github.com/stedolan/jq)
@@ -20,47 +20,27 @@ Terraform module to provision a Docker Swarm mode cluster in a single availabili
 
 ```hcl
 module "swarm-cluster" {
-  source           = "thojkooi/docker-swarm-mode/digitalocean"
-  version          = "1.0.0"
-  domain           = "do.example.com"
-  total_managers   = 3
-  total_workers    = 2
-  manager_ssh_keys = [1234, 1235, ...]
-  worker_ssh_keys  = [1234, 1235, ...]
+  source           = "github.com/teutat3s/terraform-digitalocean-docker-swarm-mode"
 
-  providers {}
+  total_managers    = 3
+  total_workers     = 2
+  region            = "fra1"
+  domain            = "swarm.example.com"
+
+  ssh_keys = [1234, 1235, ...]
+
+  manager_image     = var.do_image
+  worker_image      = var.do_image
+  manager_size      = var.do_size
+  worker_size       = var.do_size
+  manager_tags      = [digitalocean_tag.environment.id, digitalocean_tag.manager.id]
+  worker_tags       = [digitalocean_tag.environment.id, digitalocean_tag.worker.id]
 }
 ```
 
 ### SSH Key
 
-Terraform uses an SSH key to connect to the created droplets in order to issue `docker swarm join` commands. By default this uses `~/.ssh/id_rsa`. If you wish to use a different key, you can modify this using the variable `provision_ssh_key`. You also need to ensure the public key is added to your DigitalOcean account and it's listed in both the `manager_ssh_keys` and `worker_ssh_keys` lists.
-
-### Exposing the Docker API
-
-You can expose the Docker API to interact with the cluster remotely. This is done by providing a certificate and private key. See the [Docker TLS example](/examples/remote-api-tls/certs) for information on how to create these.
-
-```hcl
-module "swarm_mode_cluster" {
-  source           = "thojkooi/docker-swarm-mode/digitalocean"
-  version          = "1.0.0"
-  domain           = "do.example.com"
-  total_managers   = 3
-  total_workers    = 2
-  manager_ssh_keys = [1234, 1235, ...]
-  worker_ssh_keys  = [1234, 1235, ...]
-
-  remote_api_ca          = "${path.module}/certs/ca.pem"
-  remote_api_certificate = "${path.module}/certs/server.pem"
-  remote_api_key         = "${path.module}/certs/server-key.pem"
-
-  manager_size = "s-2vcpu-4gb"
-  worker_size  = "s-1vcpu-1gb"
-  manager_tags = ["${digitalocean_tag.cluster.id}", "${digitalocean_tag.manager.id}"]
-  worker_tags  = ["${digitalocean_tag.cluster.id}", "${digitalocean_tag.worker.id}"]
-  providers = {}
-}
-```
+Terraform uses an SSH key to connect to the created droplets in order to issue `docker swarm join` commands. By default this uses `~/.ssh/id_rsa`. If you wish to use a different key, you can modify this using the variable `provision_ssh_key`. You also need to ensure the public key is added to your DigitalOcean account and it's listed in the `ssh_keys` list.
 
 > Note that for this to work, you need to open the Docker remote API port in both iptables (not necessary with default images) and the DigitalOcean cloud firewall.
 
@@ -76,7 +56,7 @@ This module has been tested with Docker CE v18.06 and later. Earlier versions sh
 
 ### Supported OS
 
-This module has been tested with Ubuntu Docker (`docker-18-04`), CoreOS, and CentOS 7.4 provided by DigitalOcean, but it should work with other distributions as well, as long as `Docker` and `sudo` packages are installed.
+This module has been tested with Ubuntu Docker (`docker-20-04`), CoreOS, and CentOS 7.4 provided by DigitalOcean, but it should work with other distributions as well, as long as `Docker` and `sudo` packages are installed.
 
 ### Ports & Firewall
 
@@ -115,16 +95,12 @@ First a single Swarm mode manager is provisioned. This is the initial leader nod
 
 If the cluster is already up and running, Terraform will check with the first leader node to refresh the join tokens. It will join any additional manager nodes that are provisioned to the Swarm mode cluster.
 
-#### Access the API
-
-To expose the Swarm mode API in HA, create a load balancer and forward tcp traffic to port `2376`. Ensure you expose the docker remote API using certificates when doing this. Alternatively you can do DNS round-robin load balancing.
-
-When you do not wish to expose your Docker API, you can use SSH to connect to one of the manager nodes and access the Docker API through this.
-
 ### Worker nodes
 
 Worker nodes should be used to run the Docker Swarm mode Services. By default, 2 worker nodes are provisioned. Set the number of desired worker nodes using the following variable: `total_workers`.
 
 ## License
+
+This repository is forked from thojkooi/terraform-digitalocean-docker-swarm-mode
 
 [MIT © Thomas Kooi](LICENSE)
