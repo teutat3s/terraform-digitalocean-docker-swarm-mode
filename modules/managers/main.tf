@@ -1,43 +1,50 @@
 data "template_file" "provision_first_manager" {
-  template = "${file("${path.module}/scripts/provision-first-manager.sh")}"
+  template = file("${path.module}/scripts/provision-first-manager.sh")
 
-  vars {
-    docker_cmd   = "${var.docker_cmd}"
-    availability = "${var.availability}"
+  vars = {
+    docker_cmd   = var.docker_cmd
+    availability = var.availability
   }
 }
 
 data "template_file" "provision_manager" {
-  template = "${file("${path.module}/scripts/provision-manager.sh")}"
+  template = file("${path.module}/scripts/provision-manager.sh")
 
-  vars {
-    docker_cmd   = "${var.docker_cmd}"
-    availability = "${var.availability}"
+  vars = {
+    docker_cmd   = var.docker_cmd
+    availability = var.availability
   }
 }
 
 resource "digitalocean_droplet" "manager" {
-  ssh_keys           = ["${var.ssh_keys}"]
-  image              = "${var.image}"
-  region             = "${var.region}"
-  size               = "${var.size}"
+  ssh_keys           = var.ssh_keys
+  image              = var.image
+  region             = var.region
+  size               = var.size
   private_networking = true
-  backups            = "${var.backups}"
+  backups            = var.backups
   ipv6               = false
-  tags               = ["${var.tags}"]
-  user_data          = "${var.user_data}"
-  count              = "${var.total_instances}"
-  name               = "${format("%s-%02d.%s.%s", var.name, count.index + 1, var.region, var.domain)}"
+  tags               = var.tags
+  user_data          = var.user_data
+  count              = var.total_instances
+  name = format(
+    "%s-%02d.%s.%s",
+    var.name,
+    count.index + 1,
+    var.region,
+    var.domain,
+  )
 
   connection {
+    host        = self.ipv4_address
     type        = "ssh"
-    user        = "${var.provision_user}"
-    private_key = "${file("${var.provision_ssh_key}")}"
-    timeout     = "${var.connection_timeout}"
+    user        = var.provision_user
+    private_key = file(var.provision_ssh_key)
+    timeout     = var.connection_timeout
   }
 
   provisioner "file" {
-    content     = "${data.template_file.provision_first_manager.rendered}"
+    content     = data.template_file.provision_first_manager.rendered
     destination = "/tmp/provision-first-manager.sh"
   }
 
@@ -49,31 +56,31 @@ resource "digitalocean_droplet" "manager" {
   }
 
   provisioner "remote-exec" {
-    when = "destroy"
+    when = destroy
 
     inline = [
       "timeout 25 docker swarm leave --force",
     ]
 
-    on_failure = "continue"
+    on_failure = continue
   }
 }
 
 # Optionally expose Docker API using certificates
 resource "null_resource" "manager_api_access" {
-  count = "${var.remote_api_key == "" || var.remote_api_certificate == "" || var.remote_api_ca == "" ? 0 : var.total_instances}"
+  count = var.remote_api_key == "" || var.remote_api_certificate == "" || var.remote_api_ca == "" ? 0 : var.total_instances
 
-  triggers {
-    cluster_instance_ids = "${join(",", digitalocean_droplet.manager.*.id)}"
-    certificate          = "${md5(file("${var.remote_api_certificate}"))}"
+  triggers = {
+    cluster_instance_ids = join(",", digitalocean_droplet.manager.*.id)
+    certificate          = filemd5(var.remote_api_certificate)
   }
 
   connection {
-    host        = "${element(digitalocean_droplet.manager.*.ipv4_address, count.index)}"
+    host        = element(digitalocean_droplet.manager.*.ipv4_address, count.index)
     type        = "ssh"
-    user        = "${var.provision_user}"
-    private_key = "${file("${var.provision_ssh_key}")}"
-    timeout     = "${var.connection_timeout}"
+    user        = var.provision_user
+    private_key = file(var.provision_ssh_key)
+    timeout     = var.connection_timeout
   }
 
   provisioner "remote-exec" {
@@ -83,17 +90,17 @@ resource "null_resource" "manager_api_access" {
   }
 
   provisioner "file" {
-    source      = "${var.remote_api_ca}"
+    source      = var.remote_api_ca
     destination = "~/.docker/ca.pem"
   }
 
   provisioner "file" {
-    source      = "${var.remote_api_certificate}"
+    source      = var.remote_api_certificate
     destination = "~/.docker/server-cert.pem"
   }
 
   provisioner "file" {
-    source      = "${var.remote_api_key}"
+    source      = var.remote_api_key
     destination = "~/.docker/server-key.pem"
   }
 
@@ -112,40 +119,41 @@ resource "null_resource" "manager_api_access" {
 
 data "external" "swarm_tokens" {
   program    = ["bash", "${path.module}/scripts/get-swarm-join-tokens.sh"]
-  depends_on = ["null_resource.manager_api_access"]
+  depends_on = [null_resource.manager_api_access]
 
   query = {
-    host        = "${element(digitalocean_droplet.manager.*.ipv4_address, 0)}"
-    user        = "${var.provision_user}"
-    private_key = "${var.provision_ssh_key}"
+    host        = element(digitalocean_droplet.manager.*.ipv4_address, 0)
+    user        = var.provision_user
+    private_key = var.provision_ssh_key
   }
 }
 
 resource "null_resource" "bootstrap" {
-  count      = "${var.total_instances}"
-  depends_on = ["null_resource.manager_api_access"]
+  count      = var.total_instances
+  depends_on = [null_resource.manager_api_access]
 
-  triggers {
-    cluster_instance_ids = "${join(",", digitalocean_droplet.manager.*.id)}"
+  triggers = {
+    cluster_instance_ids = join(",", digitalocean_droplet.manager.*.id)
   }
 
   connection {
-    host        = "${element(digitalocean_droplet.manager.*.ipv4_address, count.index)}"
+    host        = element(digitalocean_droplet.manager.*.ipv4_address, count.index)
     type        = "ssh"
-    user        = "${var.provision_user}"
-    private_key = "${file("${var.provision_ssh_key}")}"
-    timeout     = "${var.connection_timeout}"
+    user        = var.provision_user
+    private_key = file(var.provision_ssh_key)
+    timeout     = var.connection_timeout
   }
 
   provisioner "file" {
-    content     = "${data.template_file.provision_manager.rendered}"
+    content     = data.template_file.provision_manager.rendered
     destination = "/tmp/provision-manager.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/provision-manager.sh",
-      "/tmp/provision-manager.sh ${digitalocean_droplet.manager.0.ipv4_address_private} ${lookup(data.external.swarm_tokens.result, "manager")}",
+      "/tmp/provision-manager.sh ${digitalocean_droplet.manager[0].ipv4_address_private} ${data.external.swarm_tokens.result["manager"]}",
     ]
   }
 }
+

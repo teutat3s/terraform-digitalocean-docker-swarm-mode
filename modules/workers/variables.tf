@@ -16,7 +16,7 @@ variable "manager_private_ip" {
 }
 
 variable "ssh_keys" {
-  type        = "list"
+  type        = list(string)
   description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to worker nodes"
 }
 
@@ -66,6 +66,7 @@ variable "user_data" {
   default = <<EOF
   #!/bin/sh
 EOF
+
 }
 
 variable "docker_cmd" {
@@ -76,10 +77,11 @@ variable "docker_cmd" {
 variable "tags" {
   description = "List of DigitalOcean tag ids"
   default     = []
-  type        = "list"
+  type        = list(string)
 }
 
 variable "availability" {
   description = "Availability of the node ('active'|'pause'|'drain')"
   default     = "active"
 }
+

@@ -8,12 +8,12 @@ variable "domain" {
 }
 
 variable "manager_ssh_keys" {
-  type        = "list"
+  type        = list(string)
   description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to manager nodes"
 }
 
 variable "worker_ssh_keys" {
-  type        = "list"
+  type        = list(string)
   description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to worker nodes"
 }
 
@@ -78,6 +78,7 @@ variable "manager_user_data" {
   default = <<EOF
   #!/bin/sh
 EOF
+
 }
 
 variable "worker_user_data" {
@@ -86,18 +87,19 @@ variable "worker_user_data" {
   default = <<EOF
   #!/bin/sh
 EOF
+
 }
 
 variable "manager_tags" {
   description = "List of DigitalOcean tag ids"
   default     = []
-  type        = "list"
+  type        = list(string)
 }
 
 variable "worker_tags" {
   description = "List of DigitalOcean tag ids"
   default     = []
-  type        = "list"
+  type        = list(string)
 }
 
 variable "remote_api_ca" {
@@ -114,3 +116,4 @@ variable "remote_api_certificate" {
   description = "Certificate file path for the docker remote API"
   default     = ""
 }
+
