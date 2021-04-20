@@ -1,50 +1,47 @@
 variable "domain" {
   description = "Domain name used in droplet hostnames, e.g example.com"
+  type        = string
 }
 
 variable "ssh_keys" {
-  type        = list(string)
   description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to manager nodes"
-}
-
-variable "provision_ssh_key" {
-  default     = "~/.ssh/id_rsa"
-  description = "File path to SSH private key used to access the provisioned nodes. Ensure this key is listed in the manager and work ssh keys list"
-}
-
-variable "provision_user" {
-  default     = "root"
-  description = "User used to log in to the droplets via ssh for issueing Docker commands"
+  type        = list(string)
 }
 
 variable "region" {
   description = "Datacenter region in which the cluster will be created"
   default     = "ams3"
+  type        = string
 }
 
 variable "total_instances" {
   description = "Total number of managers in cluster"
   default     = 1
+  type        = number
 }
 
 variable "image" {
   description = "Droplet image used for the manager nodes"
-  default     = "docker-18-04"
+  default     = "docker-20-04"
+  type        = string
 }
 
 variable "size" {
   description = "Droplet size of manager nodes"
   default     = "s-1vcpu-1gb"
+  type        = string
 }
 
 variable "name" {
   description = "Prefix for name of manager nodes"
   default     = "manager"
+  type        = string
 }
 
 variable "backups" {
   description = "Enable DigitalOcean droplet backups"
   default     = false
+  type        = bool
 }
 
 variable "user_data" {
@@ -54,11 +51,7 @@ variable "user_data" {
   #!/bin/sh
 EOF
 
-}
-
-variable "docker_cmd" {
-  description = "Docker command"
-  default     = "sudo docker"
+  type    = string
 }
 
 variable "tags" {
@@ -66,21 +59,3 @@ variable "tags" {
   default     = []
   type        = list(string)
 }
-
-variable "availability" {
-  description = "Availability of the node ('active'|'pause'|'drain')"
-  default     = "active"
-}
-
-variable "remote_api_ca" {
-  default = ""
-}
-
-variable "remote_api_key" {
-  default = ""
-}
-
-variable "remote_api_certificate" {
-  default = ""
-}
-

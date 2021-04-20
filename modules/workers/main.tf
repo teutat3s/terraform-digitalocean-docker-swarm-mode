@@ -1,23 +1,4 @@
-data "template_file" "join_cluster_as_worker" {
-  template = file("${path.module}/scripts/join.sh")
-
-  vars = {
-    docker_cmd         = var.docker_cmd
-    availability       = var.availability
-    manager_private_ip = var.manager_private_ip
-  }
-}
-
-resource "digitalocean_droplet" "node" {
-  ssh_keys           = var.ssh_keys
-  image              = var.image
-  region             = var.region
-  size               = var.size
-  private_networking = true
-  backups            = var.backups
-  ipv6               = false
-  user_data          = var.user_data
-  tags               = var.tags
+resource "digitalocean_droplet" "worker" {
   count              = var.total_instances
   name = format(
     "%s-%02d.%s.%s",
@@ -26,22 +7,25 @@ resource "digitalocean_droplet" "node" {
     var.region,
     var.domain,
   )
+  image              = var.image
+  size               = var.size
+  region             = var.region
+  ssh_keys           = var.ssh_keys
+  private_networking = true
+  backups            = var.backups
+  ipv6               = false
+  tags               = var.tags
+  user_data          = var.user_data
 
   connection {
-    host        = self.ipv4_address
     type        = "ssh"
+    host        = self.ipv4_address
     user        = "root"
-  }
-
-  provisioner "file" {
-    content     = data.template_file.join_cluster_as_worker.rendered
-    destination = "/tmp/join_cluster_as_worker.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/join_cluster_as_worker.sh",
-      "/tmp/join_cluster_as_worker.sh ${var.join_token}",
+      "docker swarm join --token ${var.join_token} ${var.manager_private_ip}",
     ]
   }
 
@@ -49,7 +33,7 @@ resource "digitalocean_droplet" "node" {
     when = destroy
 
     inline = [
-      "docker swarm leave",
+      "timeout 25 docker swarm leave --force",
     ]
 
     on_failure = continue

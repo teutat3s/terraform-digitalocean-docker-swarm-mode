@@ -1,70 +1,65 @@
 variable "domain" {
   description = "Domain name used in droplet hostnames, e.g example.com"
+  type        = string
 }
 
-variable "manager_ssh_keys" {
+variable "ssh_keys" {
+  description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to the provisioned nodes"
   type        = list(string)
-  description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to manager nodes"
-}
-
-variable "worker_ssh_keys" {
-  type        = list(string)
-  description = "A list of SSH IDs or fingerprints to enable in the format [12345, 123456] that are added to worker nodes"
-}
-
-variable "provision_ssh_key" {
-  default     = "~/.ssh/id_rsa"
-  description = "File path to SSH private key used to access the provisioned nodes. Ensure this key is listed in the manager and work ssh keys list"
-}
-
-variable "provision_user" {
-  default     = "root"
-  description = "User used to log in to the droplets via ssh for issueing Docker commands"
 }
 
 variable "region" {
   description = "Datacenter region in which the cluster will be created"
   default     = "ams3"
+  type        = string
 }
 
 variable "total_managers" {
   description = "Total number of managers in cluster"
   default     = 1
+  type        = number
 }
 
 variable "total_workers" {
   description = "Total number of workers in cluster"
   default     = 1
+  type        = number
 }
 
 variable "manager_image" {
   description = "Image for the manager nodes"
-  default     = "docker-18-04"
+  default     = "docker-20-04"
+  type        = string
 }
 
 variable "worker_image" {
   description = "Droplet image for the worker nodes"
-  default     = "docker-18-04"
+  default     = "docker-20-04"
+  type        = string
 }
 
 variable "manager_size" {
   description = "Droplet size of worker nodes"
   default     = "s-1vcpu-1gb"
+  type        = string
 }
 
 variable "worker_size" {
   description = "Droplet size of worker nodes"
   default     = "s-1vcpu-1gb"
+  type        = string
 }
 
 variable "manager_name" {
   description = "Prefix for name of manager nodes"
   default     = "manager"
+  type        = string
 }
 
 variable "worker_name" {
   description = "Prefix for name of worker nodes"
   default     = "worker"
+  type        = string
 }
 
 variable "manager_user_data" {
@@ -74,6 +69,7 @@ variable "manager_user_data" {
   #!/bin/sh
 EOF
 
+  type        = string
 }
 
 variable "worker_user_data" {
@@ -83,6 +79,7 @@ variable "worker_user_data" {
   #!/bin/sh
 EOF
 
+  type        = string
 }
 
 variable "manager_tags" {
@@ -96,19 +93,3 @@ variable "worker_tags" {
   default     = []
   type        = list(string)
 }
-
-variable "remote_api_ca" {
-  description = "CA file path for the docker remote API"
-  default     = ""
-}
-
-variable "remote_api_key" {
-  description = "Private key file path for the docker remote API"
-  default     = ""
-}
-
-variable "remote_api_certificate" {
-  description = "Certificate file path for the docker remote API"
-  default     = ""
-}
-

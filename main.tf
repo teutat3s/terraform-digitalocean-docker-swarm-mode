@@ -11,12 +11,7 @@ module "managers" {
   user_data       = var.manager_user_data
   tags            = var.manager_tags
 
-  remote_api_ca          = var.remote_api_ca
-  remote_api_key         = var.remote_api_key
-  remote_api_certificate = var.remote_api_certificate
-
-  ssh_keys           = var.worker_ssh_keys
-  provision_ssh_key  = var.provision_ssh_key
+  ssh_keys           = var.ssh_keys
 }
 
 module "workers" {
@@ -35,7 +30,6 @@ module "workers" {
   manager_private_ip = element(module.managers.ipv4_addresses_private, 0)
   join_token         = module.managers.worker_token
 
-  ssh_keys           = var.worker_ssh_keys
-  provision_ssh_key  = var.provision_ssh_key
+  ssh_keys           = var.ssh_keys
 }
 
