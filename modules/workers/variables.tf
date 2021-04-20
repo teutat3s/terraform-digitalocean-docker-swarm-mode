@@ -10,7 +10,7 @@ variable "join_token" {
 
 variable "manager_private_ip" {
   description = "Private ip adress of a manager node, used to have a node join the existing cluster"
-  type        = string
+  type        = list(string)
 }
 
 variable "ssh_keys" {

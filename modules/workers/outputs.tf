@@ -9,7 +9,12 @@ output "ipv4_addresses_private" {
 }
 
 output "droplet_ids" {
-  value       = [digitalocean_droplet.worker.*.id]
+  value       = digitalocean_droplet.worker.*.id
+  description = "The droplet ids"
+}
+
+output "droplet_urns" {
+  value       = digitalocean_droplet.worker.*.urn
   description = "The droplet ids"
 }
 

@@ -13,6 +13,11 @@ output "droplet_ids" {
   description = "The droplet ids"
 }
 
+output "droplet_urns" {
+  value       = digitalocean_droplet.manager.*.urn
+  description = "The droplet urns"
+}
+
 output "manager_token" {
   value       = lookup(data.external.swarm_tokens.result, "manager", "")
   description = "The Docker Swarm manager join token"

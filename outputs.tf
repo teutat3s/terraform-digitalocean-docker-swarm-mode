@@ -18,6 +18,16 @@ output "worker_ips_private" {
   description = "The worker nodes private ipv4 adresses"
 }
 
+output "droplet_ids" {
+  value       = concat(module.managers.droplet_ids, module.workers.droplet_ids)
+  description = "The ids of all droplets"
+}
+
+output "droplet_urns" {
+  value       = concat(module.managers.droplet_urns, module.workers.droplet_urns)
+  description = "The uniform resource name (URN) of all droplets"
+}
+
 output "manager_token" {
   value       = module.managers.manager_token
   description = "The Docker Swarm manager join token"
