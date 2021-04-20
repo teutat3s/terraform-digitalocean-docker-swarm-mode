@@ -30,9 +30,7 @@ resource "digitalocean_droplet" "node" {
   connection {
     host        = self.ipv4_address
     type        = "ssh"
-    user        = var.provision_user
-    private_key = file(var.provision_ssh_key)
-    timeout     = var.connection_timeout
+    user        = "root"
   }
 
   provisioner "file" {

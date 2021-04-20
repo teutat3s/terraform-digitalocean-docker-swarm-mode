@@ -38,9 +38,7 @@ resource "digitalocean_droplet" "manager" {
   connection {
     host        = self.ipv4_address
     type        = "ssh"
-    user        = var.provision_user
-    private_key = file(var.provision_ssh_key)
-    timeout     = var.connection_timeout
+    user        = "root"
   }
 
   provisioner "file" {
@@ -78,9 +76,7 @@ resource "null_resource" "manager_api_access" {
   connection {
     host        = element(digitalocean_droplet.manager.*.ipv4_address, count.index)
     type        = "ssh"
-    user        = var.provision_user
-    private_key = file(var.provision_ssh_key)
-    timeout     = var.connection_timeout
+    user        = "root"
   }
 
   provisioner "remote-exec" {
@@ -139,9 +135,7 @@ resource "null_resource" "bootstrap" {
   connection {
     host        = element(digitalocean_droplet.manager.*.ipv4_address, count.index)
     type        = "ssh"
-    user        = var.provision_user
-    private_key = file(var.provision_ssh_key)
-    timeout     = var.connection_timeout
+    user        = "root"
   }
 
   provisioner "file" {

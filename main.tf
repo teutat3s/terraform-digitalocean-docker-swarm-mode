@@ -18,7 +18,6 @@ module "managers" {
   ssh_keys           = [var.worker_ssh_keys]
   provision_ssh_key  = var.provision_ssh_key
   provision_user     = var.provision_user
-  connection_timeout = var.connection_timeout
 }
 
 module "workers" {
@@ -40,6 +39,5 @@ module "workers" {
   ssh_keys           = [var.worker_ssh_keys]
   provision_ssh_key  = var.provision_ssh_key
   provision_user     = var.provision_user
-  connection_timeout = var.connection_timeout
 }
 
